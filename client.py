@@ -27,7 +27,7 @@ NUM_INPUTS = 4
 #Returns: r_port
 def tcpInitiation(server_address, n_port, req_code):
 	# Create client TCP socket
-	TCPSocket = socket(AF_INET, SOCK_DGRAM)
+	TCPSocket = socket(AF_INET, SOCK_STREAM)
 	try:
 		TCPSocket.connect((server_address, n_port))
 	except error:
@@ -35,8 +35,11 @@ def tcpInitiation(server_address, n_port, req_code):
 		quit()
 
 	# sending request code
-	TCPSocket.send(req_code)
-	r_port = int(TCPSocket.recv(1024))
+	TCPSocket.send(str(req_code).encode())
+	r_port = int(TCPSocket.recv(1024).decode())
+
+	print(r_port)
+
 	if r_port == 0:
 		TCPSocket.close()
 		exit(0)
@@ -50,8 +53,9 @@ def tcpInitiation(server_address, n_port, req_code):
 #Returns: ReversedString
 def udpTransaction(server_address, r_port, msg):
 	UDPSocket = socket(AF_INET, SOCK_DGRAM)
-	UDPSocket.sendto("SEND", (server_address, r_port))
+	UDPSocket.sendto("SEND".encode(), (server_address, r_port))
 	while(1):
+		print("HERE") # TODO dictionary format
 		Message, serverAddress = UDPSocket.recvfrom(2048)
 		if str(Message) == "NO MSG.​":
 			break
