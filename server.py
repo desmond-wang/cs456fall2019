@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #CS456 Assignment #1 - Server
 #Daiyang Wang
@@ -41,36 +41,13 @@ def Check_Inputs(args):
 #Returns a socket on the first random port available (> 1024)
 def Create_Socket(sockType):
     testSocket = socket(AF_INET, sockType)
-    host = gethostname()
+    # host = gethostname()
+    # testSocket.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
     # testSocket.bind((str(gethostbyname(host)), int(testSocket.getsockname()[1])))		#Choose a free port
-    testSocket.bind(('',0))
+    testSocket.bind(('',0)) #CHoose a free port
     return testSocket			#Return the socket
 
 
-# def on_new_client(connectionSocket, addr, req_code):
-# 	global mesgs
-# 	initiate = connectionSocket.recv(1024)
-# 	if int(initiate) == req_code:  # Validate request code
-# 		r_socket = Create_Socket(SOCK_DGRAM)  # create udp
-#
-# 		connectionSocket.send(str(r_socket.getsockname()[1])) #TODO send port num #send port to client for udp connection
-#
-# 		# r_socket.sendto(mesgs, addr) # TODO print list
-#
-# 		# get all message
-# 		for meg in mesgs:
-# 			r_socket.sendto(mesgs, addr) #TODO send message
-#
-# 		mesg = connectionSocket.recv(1024) # once all recieved
-# 		if str(mesg) == "TERMINATE":
-# 			global TERMINATE
-# 			TERMINATE = True
-# 		else:
-# 			port_number = r_socket.getsockname()[1]
-# 			mesgs[port_number] = str(mesg) #TODO server side udp name or ?
-#
-# 	else:
-# 		connectionSocket.send("0") # client should terminate
 
 #tcpNegotiation():
 #Waits for an initiation from the client on <n_socket> via the sending of a predefined request code, <42>.
@@ -92,10 +69,6 @@ def tcpInitiation(n_socket, req_code):
 			connectionSocket.send("0".encode())  # client should terminate
 			connectionSocket.close()
 			return 0
-	# t = Thread(target=on_new_client, args=(connectionSocket, addr, req_code, ))
-	#
-	# 	t.start()
-	# 	t.join()
 
 
 

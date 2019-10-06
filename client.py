@@ -15,7 +15,7 @@
 #   	  Receive the message from the server and print it out
 
 from socket import *
-import sys, string, json, termios, tty
+import sys, string, json, termios, tty, collections
 
 
 NUM_INPUTS = 4
@@ -26,26 +26,26 @@ NUM_INPUTS = 4
 #The server sends back the port needed for the transaction.
 #Returns: r_port
 def tcpInitiation(server_address, n_port, req_code):
-	# Create client TCP socket
-	TCPSocket = socket(AF_INET, SOCK_STREAM)
-	try:
-		TCPSocket.connect((server_address, n_port))
-	except error:
-		print("Negotiation port unavailable: please ensure the server is running")
-		quit()
+    # Create client TCP socket
+        TCPSocket = socket(AF_INET, SOCK_STREAM)
+        try:
+            TCPSocket.connect((server_address, n_port))
+        except error:
+            print("Connection refused: please ensure the server is running")
+            quit()
 
-	# sending request code
-	TCPSocket.send(str(req_code).encode())
-	r_port = int(TCPSocket.recv(1024).decode())
+        # sending request code
+        TCPSocket.send(str(req_code).encode())
+        r_port = int(TCPSocket.recv(1024).decode())
 
 
-	if r_port == 0:
-		print("Invalid req_code.")
-		TCPSocket.close()
-		exit(0)
-	else:
-		TCPSocket.close()
-		return r_port
+        if r_port == 0:
+            print("Invalid req_code.")
+            TCPSocket.close()
+            exit(0)
+        else:
+            TCPSocket.close()
+            return r_port
 
 #udpTransaction(sever_address, r_port, msg):
 #Completes a transaction with the <server_address> via UDP at <r_port> by sending the string, <msg>. The server will
@@ -61,7 +61,7 @@ def udpTransaction(server_address, r_port, msg):
 			print(Message.decode())
 			break
 		else:
-			message_decode = json.loads(Message.decode('utf-8'))
+			message_decode = json.loads(Message.decode('utf-8'), object_pairs_hook=collections.OrderedDict)
 			for key, val in message_decode.items():
 				print("[" + key + "]: " + val) #  dictionary format
 	UDPSocket.sendto(msg.encode(), (server_address, r_port))
