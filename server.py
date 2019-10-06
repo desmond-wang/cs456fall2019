@@ -12,7 +12,7 @@
 
 from socket import *
 from threading import Thread
-import sys, string, random, signal
+import sys, string, random, signal, json
 
 NUM_INPUTS = 1
 
@@ -45,30 +45,30 @@ def Create_Socket(sockType):
 	return testSocket			#Return the socket
 
 
-def on_new_client(connectionSocket, addr, req_code):
-	global mesgs
-	initiate = connectionSocket.recv(1024)
-	if int(initiate) == req_code:  # Validate request code
-		r_socket = Create_Socket(SOCK_DGRAM)  # create udp
-
-		connectionSocket.send(str(r_socket.getsockname()[1])) #TODO send port num #send port to client for udp connection
-
-		# r_socket.sendto(mesgs, addr) # TODO print list
-
-		# get all message
-		for meg in mesgs:
-			r_socket.sendto(mesgs, addr) #TODO send message
-
-		mesg = connectionSocket.recv(1024) # once all recieved
-		if str(mesg) == "TERMINATE":
-			global TERMINATE
-			TERMINATE = True
-		else:
-			port_number = r_socket.getsockname()[1]
-			mesgs[port_number] = str(mesg) #TODO server side udp name or ?
-
-	else:
-		connectionSocket.send("0") # client should terminate
+# def on_new_client(connectionSocket, addr, req_code):
+# 	global mesgs
+# 	initiate = connectionSocket.recv(1024)
+# 	if int(initiate) == req_code:  # Validate request code
+# 		r_socket = Create_Socket(SOCK_DGRAM)  # create udp
+#
+# 		connectionSocket.send(str(r_socket.getsockname()[1])) #TODO send port num #send port to client for udp connection
+#
+# 		# r_socket.sendto(mesgs, addr) # TODO print list
+#
+# 		# get all message
+# 		for meg in mesgs:
+# 			r_socket.sendto(mesgs, addr) #TODO send message
+#
+# 		mesg = connectionSocket.recv(1024) # once all recieved
+# 		if str(mesg) == "TERMINATE":
+# 			global TERMINATE
+# 			TERMINATE = True
+# 		else:
+# 			port_number = r_socket.getsockname()[1]
+# 			mesgs[port_number] = str(mesg) #TODO server side udp name or ?
+#
+# 	else:
+# 		connectionSocket.send("0") # client should terminate
 
 #tcpNegotiation():
 #Waits for an initiation from the client on <n_socket> via the sending of a predefined request code, <42>.
@@ -85,18 +85,16 @@ def tcpInitiation(n_socket, req_code):
 			r_socket = Create_Socket(SOCK_DGRAM)  # create udp
 
 			connectionSocket.send(str(r_socket.getsockname()[1]).encode())
+			return r_socket
 		else:
-			connectionSocket.send("0")  # client should terminate
+			connectionSocket.send("0".encode())  # client should terminate
+			connectionSocket.close()
+			return 0
 	# t = Thread(target=on_new_client, args=(connectionSocket, addr, req_code, ))
 	#
 	# 	t.start()
 	# 	t.join()
-		global TERMINATE
-		if TERMINATE:
-			connectionSocket.close()
-			exit(0)
 
-	return r_socket
 
 
 
@@ -105,23 +103,24 @@ def tcpInitiation(n_socket, req_code):
 #Once received, the message is reversed and send back to the client.
 
 def udpTransaction(r_socket):
+	global TERMINATE
 	while(1):
 		message, clientAddress = r_socket.recvfrom(2048)
-                if message == "SEND":
-                        print("SEND")
-                        r_socket.sendto(message, clientAddress)  #TODO must have no msg. before terminate or send message
-                        r_socket.sendto("NO MSG.​", clientAddress)  #TODO must have no msg. before terminate or send message
+		message = message.decode()
 
-			for meg in mesgs:
-				r_socket.sendto(meg, clientAddress) #TODO send message (???)
-			r_socket.sendto("NO MSG.​", clientAddress)  #TODO must have no msg. before terminate or send message
-		if str(message) == "TERMINATE":
+		if message == "SEND":
+
+			#send dictionary(recent message) to client
+			encap_mesgs = json.dumps(mesgs).encode('utf-8')
+			r_socket.sendto(encap_mesgs, clientAddress)
+			r_socket.sendto("NO MSG.​".encode(), clientAddress)
+		elif message == "TERMINATE":
 			r_socket.close()
-			global TERMINATE
 			TERMINATE = True
+			return
 		else:
-			mesgs[clientAddress] = str(message) #TODO server side udp name or
-
+			mesgs[clientAddress[1]] = str(message) # add to dictionary
+			return
 
 #Shutdown(sigId, frameID):
 #Shuts the server down when a signal is triggers. The parameters are not used.
@@ -134,10 +133,20 @@ def main():
 	serverUDPHost, neg_port = tcp_socket.getsockname() # print TCP server port
 
 	print ("SERVER_PORT =", str(neg_port))
+	global TERMINATE
 
 	while True:
+		# tcp_socket = Create_Socket(SOCK_STREAM)
+		# serverUDPHost, neg_port = tcp_socket.getsockname()  # print TCP server port
+		# print("SERVER_PORT =", str(neg_port))
+
+		if TERMINATE:
+			exit(0)
 		r_socket = tcpInitiation(tcp_socket, req_code) 			#Wait for initiation
+		if r_socket == 0:
+			continue
 		t = Thread(target=udpTransaction, args=(r_socket, ))	#Complete transaction
 		t.start()
 		t.join()
+		# udpTransaction(r_socket)
 main()

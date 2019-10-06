@@ -15,7 +15,7 @@
 #   	  Receive the message from the server and print it out
 
 from socket import *
-import sys, string
+import sys, string, json, termios, tty
 
 
 NUM_INPUTS = 4
@@ -38,7 +38,6 @@ def tcpInitiation(server_address, n_port, req_code):
 	TCPSocket.send(str(req_code).encode())
 	r_port = int(TCPSocket.recv(1024).decode())
 
-	print(r_port)
 
 	if r_port == 0:
 		TCPSocket.close()
@@ -55,14 +54,27 @@ def udpTransaction(server_address, r_port, msg):
 	UDPSocket = socket(AF_INET, SOCK_DGRAM)
 	UDPSocket.sendto("SEND".encode(), (server_address, r_port))
 	while(1):
-		print("HERE") # TODO dictionary format
 		Message, serverAddress = UDPSocket.recvfrom(2048)
-		if str(Message) == "NO MSG.​":
+
+		if str(Message.decode()) == "NO MSG.​":
+			print(Message.decode())
 			break
 		else:
-			print(Message) # TODO dictionary format
-	UDPSocket.sendto(msg, (server_address, r_port))
-	UDPSocket.close()
+			message_decode = json.loads(Message.decode('utf-8'))
+			for key, val in message_decode.items():
+				print("[" + key + "]: " + val) #  dictionary format
+	UDPSocket.sendto(msg.encode(), (server_address, r_port))
+
+	stdinFileDesc = sys.stdin.fileno()  # store stdin's file descriptor
+	oldStdinTtyAttr = termios.tcgetattr(stdinFileDesc)  # save stdin's tty attributes so I can reset it later
+	try:
+		print('Press any key to exit.')
+		tty.setraw(
+			stdinFileDesc)  # set the input mode of stdin so that it gets added to char by char rather than line by line
+		sys.stdin.read(1)  # read 1 byte from stdin (indicating that a key has been pressed)
+	finally:
+		termios.tcsetattr(stdinFileDesc, termios.TCSADRAIN, oldStdinTtyAttr)  # reset stdin to its normal behavior
+		UDPSocket.close()
 
 #Main
 def main():
