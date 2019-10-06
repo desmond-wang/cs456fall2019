@@ -40,6 +40,7 @@ def tcpInitiation(server_address, n_port, req_code):
 
 
 	if r_port == 0:
+		print("Invalid req_code.")
 		TCPSocket.close()
 		exit(0)
 	else:
@@ -52,7 +53,7 @@ def tcpInitiation(server_address, n_port, req_code):
 #Returns: ReversedString
 def udpTransaction(server_address, r_port, msg):
 	UDPSocket = socket(AF_INET, SOCK_DGRAM)
-	UDPSocket.sendto("SEND".encode(), (server_address, r_port))
+	UDPSocket.sendto("GET".encode(), (server_address, r_port))
 	while(1):
 		Message, serverAddress = UDPSocket.recvfrom(2048)
 
@@ -68,6 +69,7 @@ def udpTransaction(server_address, r_port, msg):
 	stdinFileDesc = sys.stdin.fileno()  # store stdin's file descriptor
 	oldStdinTtyAttr = termios.tcgetattr(stdinFileDesc)  # save stdin's tty attributes so I can reset it later
 	try:
+		print()
 		print('Press any key to exit.')
 		tty.setraw(
 			stdinFileDesc)  # set the input mode of stdin so that it gets added to char by char rather than line by line
@@ -89,7 +91,7 @@ def main():
 		#  receive the r_port
 		udpTransaction(server_address, r_port, msg)	#Complete the transaction using UDP, receive the reversed message
 	else:
-		print("Error: incorrect parameters. <server_address> <n_port> and <msg> are required")
+		print("Error: incorrect parameters. <server_address> <n_port> <req_code> and <msg> are required")
 		quit()
 
 main()

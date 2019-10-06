@@ -12,13 +12,13 @@
 
 from socket import *
 from threading import Thread
-import sys, string, random, signal, json
+import sys, string, random, signal, json, collections
 
 NUM_INPUTS = 1
 
 TERMINATE = False
 
-mesgs = {}
+mesgs = collections.OrderedDict()
 # Function check_inputs(args):
 # Parameters: 1
 # Parameter:
@@ -40,9 +40,11 @@ def Check_Inputs(args):
 #Create_TCP(sockType):
 #Returns a socket on the first random port available (> 1024)
 def Create_Socket(sockType):
-	testSocket = socket(AF_INET, sockType)
-	testSocket.bind(('', 0))		#Choose a free port
-	return testSocket			#Return the socket
+    testSocket = socket(AF_INET, sockType)
+    host = gethostname()
+    # testSocket.bind((str(gethostbyname(host)), int(testSocket.getsockname()[1])))		#Choose a free port
+    testSocket.bind(('',0))
+    return testSocket			#Return the socket
 
 
 # def on_new_client(connectionSocket, addr, req_code):
@@ -75,7 +77,7 @@ def Create_Socket(sockType):
 #Once initialized, a socket is chosen at random for the transaction to be completed. This socket is sent back to the client. 
 #Returns: r_socket
 def tcpInitiation(n_socket, req_code):
-	n_socket.listen(1)
+	n_socket.listen(5)
 	waiting = 1
 	list_sock = []
 	while waiting:
@@ -108,7 +110,7 @@ def udpTransaction(r_socket):
 		message, clientAddress = r_socket.recvfrom(2048)
 		message = message.decode()
 
-		if message == "SEND":
+		if message == "GET":
 
 			#send dictionary(recent message) to client
 			encap_mesgs = json.dumps(mesgs).encode('utf-8')
@@ -128,25 +130,29 @@ def udpTransaction(r_socket):
 	
 #Main
 def main():
-	req_code = sys.argv[1]
-	tcp_socket = Create_Socket(SOCK_STREAM)
-	serverUDPHost, neg_port = tcp_socket.getsockname() # print TCP server port
+    if len(sys.argv) == 2:
+        req_code = sys.argv[1]
+        tcp_socket = Create_Socket(SOCK_STREAM)
+        serverUDPHost, neg_port = tcp_socket.getsockname() # print TCP server port
 
-	print ("SERVER_PORT =", str(neg_port))
-	global TERMINATE
+        print ("SERVER_PORT =", str(neg_port))
+        global TERMINATE
 
-	while True:
-		# tcp_socket = Create_Socket(SOCK_STREAM)
-		# serverUDPHost, neg_port = tcp_socket.getsockname()  # print TCP server port
-		# print("SERVER_PORT =", str(neg_port))
+        while True:
+            # tcp_socket = Create_Socket(SOCK_STREAM)
+                # serverUDPHost, neg_port = tcp_socket.getsockname()  # print TCP server port
+                # print("SERVER_PORT =", str(neg_port))
 
-		if TERMINATE:
-			exit(0)
-		r_socket = tcpInitiation(tcp_socket, req_code) 			#Wait for initiation
-		if r_socket == 0:
-			continue
-		t = Thread(target=udpTransaction, args=(r_socket, ))	#Complete transaction
-		t.start()
-		t.join()
-		# udpTransaction(r_socket)
+                if TERMINATE:
+                    exit(0)
+                r_socket = tcpInitiation(tcp_socket, req_code) 			#Wait for initiation
+                if r_socket == 0:
+                    continue
+                t = Thread(target=udpTransaction, args=(r_socket, ))	#Complete transaction
+                t.start()
+                t.join()
+                # udpTransaction(r_socket)
+    else:
+        print("Error: incorrecr parameters. <req_code> are required")
+        quit()
 main()
