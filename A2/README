@@ -1,0 +1,16 @@
+CS456 - Assignment #2 - Readme
+Daiyang Wang
+20646168
+
+Compilation:
+To compile, use the makefile by executing the "make" command. This will produce the Sender and Receiver executables for java.
+
+Execution:
+1. On the host host1: ./nEmulator-linux386  9991 host2 9994 9993 host3 9992 1 0.2 0
+
+2. On the host host2: ./receiver.sh host1 9993 9994 <output File>
+
+3. On the host host3: ./sender.sh host1 9991 9992 <input file>
+
+Development environment:
+The program is wrriten by Java, and it is suppose to run on linux student environment.
