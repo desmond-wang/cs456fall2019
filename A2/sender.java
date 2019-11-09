@@ -14,7 +14,6 @@ public class sender {
     static PrintWriter seqnumLog;
     static PrintWriter ackLog;
     static PrintWriter timeLog;
-//    static int lengthOfLastPackage = 0;
 
 
     public static void main(String[] args) throws Exception {
@@ -61,7 +60,7 @@ public class sender {
         timeLog = new PrintWriter(new FileWriter("./time.log"));
         int windowsBase = 0;
         int nextPacket = 0;
-        int timeOut = 500;
+        int timeOut = 100;
 
         Instant start = Instant.now();
         //send the data in each windows size
@@ -78,7 +77,7 @@ public class sender {
             }
             // recieve for server and move the windows
             try {
-                // set the timeout to 500
+                // set the timeout to 100ms
                 recvSocket.setSoTimeout(timeOut);
                 // create ack reciving packet
                 byte[] ack = new byte[1024];
