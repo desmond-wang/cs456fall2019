@@ -130,20 +130,19 @@ public class sender {
             } catch (SocketTimeoutException e) {
                 continue;
             }
-            // calculate the time and print on time.log
-            Instant end = Instant.now();
-            Duration timeElapsed = Duration.between(start, end);
-            timeLog.println(timeElapsed.toMillis());
 
-            //closing
-            senderSocket.close();
-            recvSocket.close();
-            seqnumLog.close();
-            ackLog.close();
-            timeLog.close();
         }
+        // calculate the time and print on time.log
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        timeLog.println(timeElapsed.toMillis());
 
-
+        //closing
+        senderSocket.close();
+        recvSocket.close();
+        seqnumLog.close();
+        ackLog.close();
+        timeLog.close();
 
     }
 
