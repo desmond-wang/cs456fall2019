@@ -94,6 +94,7 @@ public class sender {
                     windowsBase += ackPacket.getSeqNum() - windowsBase % 32 + 1;
                 } else if (ackPacket.getSeqNum() < windowsSize &&
                         (ackPacket.getSeqNum() + 32 - windowsBase % 32 < windowsSize) ){
+                    // partial packet lost, change the windowsbase to resend the package.
                     windowsBase += ackPacket.getSeqNum() + 32 - windowsBase % 32 + 1;
                 }
             } catch (SocketTimeoutException e) {
