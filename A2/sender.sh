@@ -1,4 +1,4 @@
 #!/bin/bash
 
-java sender $1 $2 $3 "$a4"
+java sender $1 $2 $3 "$4"
 
